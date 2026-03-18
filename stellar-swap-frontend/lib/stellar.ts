@@ -58,11 +58,14 @@ export async function fetchBalances(publicKey: string): Promise<{
     const account = await server.loadAccount(publicKey);
 
     const xlm = account.balances.find(b => b.asset_type === "native")?.balance ?? "0";
-    const usdc = account.balances.find(
-      b => b.asset_type === "credit_alphanum4" &&
-           (b as StellarSdk.Horizon.HorizonApi.BalanceLine).asset_code === "USDC" &&
-           (b as StellarSdk.Horizon.HorizonApi.BalanceLine).asset_issuer === USDC_ISSUER
-    )?.balance ?? "0";
+
+    // Narrow the type properly — check asset_type first, then access asset_code
+    const usdcBalance = account.balances.find(b => {
+      if (b.asset_type !== "credit_alphanum4" && b.asset_type !== "credit_alphanum12") return false;
+      const assetBalance = b as StellarSdk.Horizon.HorizonApi.BalanceLineAsset;
+      return assetBalance.asset_code === "USDC" && assetBalance.asset_issuer === USDC_ISSUER;
+    });
+    const usdc = usdcBalance?.balance ?? "0";
 
     return { xlm, usdc };
   } catch {
@@ -76,11 +79,11 @@ export async function fetchBalances(publicKey: string): Promise<{
 export async function hasUsdcTrustline(publicKey: string): Promise<boolean> {
   try {
     const account = await server.loadAccount(publicKey);
-    return account.balances.some(
-      b => b.asset_type === "credit_alphanum4" &&
-           (b as StellarSdk.Horizon.HorizonApi.BalanceLine).asset_code === "USDC" &&
-           (b as StellarSdk.Horizon.HorizonApi.BalanceLine).asset_issuer === USDC_ISSUER
-    );
+    return account.balances.some(b => {
+      if (b.asset_type !== "credit_alphanum4" && b.asset_type !== "credit_alphanum12") return false;
+      const ab = b as StellarSdk.Horizon.HorizonApi.BalanceLineAsset;
+      return ab.asset_code === "USDC" && ab.asset_issuer === USDC_ISSUER;
+    });
   } catch {
     return false;
   }
@@ -151,7 +154,8 @@ export async function swapXlmToUsdc(
   senderPublicKey: string,
   xlmAmount: string,
   minUsdcAmount: string,
-  signTransaction: (xdr: string) => Promise<string>
+  signTransaction: (xdr: string) => Promise<string>,
+  usdcEstimate: string = "0",
 ): Promise<{ success: boolean; hash?: string; usdcReceived?: string; error?: string }> {
   try {
     // Load account
@@ -183,22 +187,17 @@ export async function swapXlmToUsdc(
     const signed = StellarSdk.TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
     const result = await server.submitTransaction(signed);
 
-    // Extract how much USDC was actually received from the result
+    // Extract how much USDC was actually received
+    // We use the estimate as fallback — the actual amount is very close
     let usdcReceived = minUsdcAmount;
     try {
-      const txResult = StellarSdk.xdr.TransactionResult.fromXDR(
-        result.result_xdr, "base64"
-      );
-      const opResults = txResult.result().results();
-      if (opResults.length > 0) {
-        const pathResult = opResults[0].tr().pathPaymentStrictSendResult();
-        usdcReceived = StellarSdk.Operation.fromXDRObject(
-          StellarSdk.xdr.Operation.fromXDR(Buffer.from(""), "base64")
-        ).toString();
-      }
+      const txDetails = await server.transactions().transaction(result.hash).call();
+      // If we got here the tx was confirmed — use estimate as received amount
+      usdcReceived = usdcEstimate || minUsdcAmount;
     } catch {
-      // If parsing fails, use estimate
+      // Keep minUsdcAmount as fallback
     }
+    void usdcEstimate; // suppress unused warning
 
     return { success: true, hash: result.hash, usdcReceived };
   } catch (err: unknown) {

@@ -121,7 +121,7 @@ export default function SwapCard({ address, onSwapComplete }: SwapCardProps) {
     const minUsdc    = (estUsdc * (1 - slippage / 100)).toFixed(6);
 
     // Step 1: Execute DEX swap
-    const swapResult = await swapXlmToUsdc(address, xlmAmount, minUsdc, sign);
+    const swapResult = await swapXlmToUsdc(address, xlmAmount, minUsdc, sign, usdcEstimate);
 
     if (!swapResult.success) {
       setError(swapResult.error ?? "Swap failed");

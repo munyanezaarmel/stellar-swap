@@ -2,45 +2,41 @@
  * lib/wallet.ts
  *
  * StellarWalletsKit singleton.
- * We initialize it ONCE and export it for use across the app.
- *
- * WHY a singleton?
- * The kit manages wallet state internally. If we create multiple instances
- * they won't share state and things break. One instance = one source of truth.
+ * StellarWalletsKit is a static singleton object — not a class you instantiate.
+ * We initialize it once and reuse it everywhere.
  */
-
-// We use dynamic import because StellarWalletsKit uses browser APIs
-// and Next.js tries to run code on the server too (SSR).
-// Dynamic import ensures it only runs in the browser.
 
 import { NETWORK_PASSPHRASE } from "./stellar";
 
-let kitInstance: import("@creit-tech/stellar-wallets-kit/sdk").StellarWalletsKitClass | null = null;
+// Track whether we've initialized the kit yet
+let initialized = false;
 
+/**
+ * Initialize the kit (only once) and return it
+ */
 export async function getKit() {
-  if (kitInstance) return kitInstance;
-
-  // Dynamic import — only runs in browser
   const { StellarWalletsKit } = await import("@creit-tech/stellar-wallets-kit/sdk");
   const { defaultModules }    = await import("@creit-tech/stellar-wallets-kit/modules/utils");
   const { Networks }          = await import("@stellar/stellar-sdk");
 
-  StellarWalletsKit.init({
-    modules: defaultModules(),
-    network: Networks.TESTNET,
-    authModal: {
-      showInstallLabel:       true,   // show "install this wallet" link
-      hideUnsupportedWallets: false,  // show all wallets even if not installed
-    },
-  });
+  if (!initialized) {
+    StellarWalletsKit.init({
+      modules: defaultModules(),
+      network: Networks.TESTNET,
+      authModal: {
+        showInstallLabel:       true,
+        hideUnsupportedWallets: false,
+      },
+    });
+    initialized = true;
+  }
 
-  kitInstance = StellarWalletsKit;
   return StellarWalletsKit;
 }
 
 /**
- * Opens the wallet picker modal and returns the selected address.
- * This is the main entry point for connecting a wallet.
+ * Open wallet picker modal — user selects Freighter, xBull, Albedo, etc.
+ * Returns the connected address.
  */
 export async function connectWallet(): Promise<{ address: string | null; error: string | null }> {
   try {
@@ -48,19 +44,17 @@ export async function connectWallet(): Promise<{ address: string | null; error: 
     const { address } = await kit.authModal();
     return { address, error: null };
   } catch (err) {
-    // ERROR TYPE 1: Wallet not found / user closed modal
-    if (err instanceof Error && err.message.includes("closed")) {
+    // ERROR TYPE 1: User closed the modal or wallet not found
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.toLowerCase().includes("close") || msg.toLowerCase().includes("cancel")) {
       return { address: null, error: "Wallet modal was closed" };
     }
-    return {
-      address: null,
-      error: err instanceof Error ? err.message : "Failed to connect wallet",
-    };
+    return { address: null, error: msg || "Failed to connect wallet" };
   }
 }
 
 /**
- * Get the currently connected address (without opening modal)
+ * Get the currently active address without opening the modal
  */
 export async function getAddress(): Promise<string | null> {
   try {
@@ -74,29 +68,20 @@ export async function getAddress(): Promise<string | null> {
 
 /**
  * Sign a transaction XDR using the connected wallet.
- * This opens the wallet popup asking the user to approve.
+ * Opens the wallet popup for user approval.
  */
 export async function signTx(xdr: string, address: string): Promise<string> {
   const kit = await getKit();
-
   const { signedTxXdr } = await kit.signTransaction(xdr, {
     networkPassphrase: NETWORK_PASSPHRASE,
     address,
   });
-
   return signedTxXdr;
 }
 
 /**
- * Disconnect the wallet
+ * Disconnect — resets the kit state
  */
 export async function disconnectWallet(): Promise<void> {
-  try {
-    const kit = await getKit();
-    // Kit handles disconnect via its profile modal
-    // We just clear our local reference
-    kitInstance = null;
-  } catch {
-    // ignore
-  }
+  initialized = false;
 }
