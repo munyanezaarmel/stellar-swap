@@ -10,8 +10,15 @@ A token swap dApp that lets users swap XLM → USDC using the **Stellar DEX orde
 
 > Add screenshots after running:
 > - Wallet picker modal (multiple wallets)
+<img width="815" height="654" alt="image" src="https://github.com/user-attachments/assets/3e5ce103-b075-4384-b732-473f0cda38b0" />
+
 > - Swap form with orderbook
+<img width="1469" height="918" alt="image" src="https://github.com/user-attachments/assets/bb859f3b-7607-433d-b42a-093d6da9385e" />
+
 > - Successful transaction
+>   <img width="1469" height="883" alt="image" src="https://github.com/user-attachments/assets/446526bc-2b43-4c4e-8018-bde815e15595" />
+<img width="1469" height="883" alt="image" src="https://github.com/user-attachments/assets/080e0079-e8ff-403b-b46f-c9d465c43059" />
+
 
 ---
 
