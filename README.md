@@ -60,9 +60,14 @@ Open http://localhost:3000
 | Functions | `record_swap`, `get_stats`, `get_history`, `get_user_total` |
 
 **Deployment TX:**
-https://stellar.expert/explorer/testnet/tx/d7d7aed2d603dd0f157e4aa292dee7acf651bedf5514b0615dba054b5e532ab2
+ https://stellar.expert/explorer/testnet/tx/d7d7aed2d603dd0f157e4aa292dee7acf651bedf5514b0615dba054b5e532ab2
 
 ---
+**VERCEL:**
+ https://stellar.expert/explorer/testnet/tx/d7d7aed2d603dd0f157e4aa292dee7acf651bedf5514b0615dba054b5e532ab2
+
+---
+https://stellar-swap-lwns.vercel.app/
 
 ## 🛠️ Tech Stack
 
