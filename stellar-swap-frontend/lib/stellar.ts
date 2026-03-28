@@ -380,10 +380,17 @@ export function formatXlm(stroops: string | number): string {
   return (Number(stroops) / 10_000_000).toFixed(2);
 }
 
-export function shortenAddress(addr: string, chars = 6): string {
-  return `${addr.slice(0, chars)}...${addr.slice(-chars)}`;
-}
+export function shortenAddress(address: string, chars = 6): string {
+  // ✅ Handle short addresses
+  if (!address || address.length <= chars * 2) {
+    return address;
+  }
 
+  const start = address.slice(0, chars);
+  const end   = address.slice(-chars);
+
+  return `${start}...${end}`;
+}
 export function getExplorerTxUrl(hash: string): string {
   return `https://stellar.expert/explorer/testnet/tx/${hash}`;
 }
