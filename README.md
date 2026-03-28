@@ -8,6 +8,8 @@ A token swap dApp that lets users swap XLM → USDC using the **Stellar DEX orde
 
 ## 📸 Screenshots
 
+**DESKTOP**
+
 > Add screenshots after running:
 > - Wallet picker modal (multiple wallets)
 <img width="815" height="654" alt="image" src="https://github.com/user-attachments/assets/3e5ce103-b075-4384-b732-473f0cda38b0" />
@@ -18,6 +20,10 @@ A token swap dApp that lets users swap XLM → USDC using the **Stellar DEX orde
 > - Successful transaction
 >   <img width="1469" height="883" alt="image" src="https://github.com/user-attachments/assets/446526bc-2b43-4c4e-8018-bde815e15595" />
 <img width="1469" height="883" alt="image" src="https://github.com/user-attachments/assets/080e0079-e8ff-403b-b46f-c9d465c43059" />
+
+**MOBILE**
+<img width="308" height="695" alt="image" src="https://github.com/user-attachments/assets/2b2e0bc3-f38e-4a9e-b24f-79a3aeede0e8" />
+<img width="308" height="695" alt="image" src="https://github.com/user-attachments/assets/9d8346e4-554e-42d8-ba1d-8875703e0320" />
 
 
 ---
