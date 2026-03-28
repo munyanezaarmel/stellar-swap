@@ -1,5 +1,5 @@
 # 🌟 StellarSwap — Token Swap Interface
-
+![Tests](https://github.com/munyanezaarmel/stellar-swap/actions/workflows/test.yml/badge.svg)
 > **Level 2 Yellow Belt** — Stellar Frontend Developer Challenge
 
 A token swap dApp that lets users swap XLM → USDC using the **Stellar DEX orderbook**, with swaps recorded on a deployed **Soroban smart contract**.
